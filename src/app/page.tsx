@@ -27,7 +27,13 @@ export default function DashboardPage() {
               招培就一体化 · 产业需求与人才供给数据闭环
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2">
+            <Link href="/jobs" className="rounded-lg px-2.5 py-1.5 text-[12px] text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors">
+              岗位查询
+            </Link>
+            <Link href="/daily" className="rounded-lg px-2.5 py-1.5 text-[12px] text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors">
+              每日发现
+            </Link>
             <Link
               href="/story"
               className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-foreground transition-colors hover:bg-accent/70"
