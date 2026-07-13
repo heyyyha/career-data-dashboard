@@ -2,6 +2,26 @@ import fs from "fs";
 import path from "path";
 import type { DailySnapshot, DashboardData, CityStat, CategoryStat, TrendPoint, JobRecord } from "./types";
 
+/** 清洗文本中的损坏字符（Unicode 替换字符 �） */
+function cleanText(s: string): string {
+  if (!s) return s;
+  return s.replace(/�/g, "").replace(/\?{2,}/g, "");
+}
+
+/** 递归清洗对象中所有字符串字段 */
+function cleanJobData(obj: any): any {
+  if (typeof obj === "string") return cleanText(obj);
+  if (Array.isArray(obj)) return obj.map(cleanJobData);
+  if (obj && typeof obj === "object") {
+    const cleaned: any = {};
+    for (const [k, v] of Object.entries(obj)) {
+      cleaned[k] = cleanJobData(v);
+    }
+    return cleaned;
+  }
+  return obj;
+}
+
 const DATA_DIR = path.join(process.cwd(), "data", "daily");
 
 /** 读取所有每日快照文件，返回按日期排序的列表 */
@@ -17,7 +37,7 @@ export function loadAllSnapshots(): DailySnapshot[] {
   for (const file of files) {
     try {
       const raw = fs.readFileSync(path.join(DATA_DIR, file), "utf-8");
-      const data = JSON.parse(raw);
+      const data = cleanJobData(JSON.parse(raw));
 
       // 兼容两种数据格式：带 list 的完整快照 或 纯 list 数组
       if (data.list && Array.isArray(data.list)) {
