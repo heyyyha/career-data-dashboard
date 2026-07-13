@@ -1,0 +1,43 @@
+name: 每日岗位数据采集
+
+on:
+  schedule:
+    # 每天北京时间 8:05（UTC 0:05）跑一次
+    - cron: "5 0 * * *"
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 需要写权限来 commit 新数据
+
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 运行采集脚本
+        run: node scripts/collect-jobs.mjs
+        env:
+          JOB_API_URL: ${{ secrets.JOB_API_URL }}
+
+      - name: 提交新数据
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 拉取远方最新，避免冲突
+          git pull --rebase origin main || true
+
+          git add data/daily/
+          if git diff --staged --quiet; then
+            echo "没有新数据，跳过 commit"
+          else
+            git commit -m "data: $(date +%Y-%m-%d) 每日岗位数据采集"
+            git push origin main
+          fi
